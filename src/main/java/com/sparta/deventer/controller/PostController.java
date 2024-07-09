@@ -2,6 +2,7 @@ package com.sparta.deventer.controller;
 
 import com.sparta.deventer.dto.PostRequestDto;
 import com.sparta.deventer.dto.PostResponseDto;
+import com.sparta.deventer.dto.PostSearchCond;
 import com.sparta.deventer.dto.PostWithCommentsResponseDto;
 import com.sparta.deventer.dto.UpdatePostRequestDto;
 import com.sparta.deventer.security.UserDetailsImpl;
@@ -10,6 +11,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -28,7 +30,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class PostController {
 
-    private static final int PAGE_SIZE = 5;
     private final PostService postService;
 
     @GetMapping("/{postId}")
@@ -86,5 +87,16 @@ public class PostController {
 
         postService.deletePost(postId, userDetails.getUser());
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/follows")
+    public ResponseEntity<Slice<PostResponseDto>> getPostsByFollowingUser(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(required = false, defaultValue = "createdAt") String sortBy,
+            @RequestBody PostSearchCond postSearchCond,
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        return ResponseEntity.ok()
+                .body(postService.getPostsByFollowingUser(page, userDetails.getUser(), sortBy,
+                        postSearchCond));
     }
 }
